@@ -28,6 +28,10 @@
     <IsAotCompatible>True</IsAotCompatible>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="NUGET.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\NUGET.md" Link="NUGET.md" />
     <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
