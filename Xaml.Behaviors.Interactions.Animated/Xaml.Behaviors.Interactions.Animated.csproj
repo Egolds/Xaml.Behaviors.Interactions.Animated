@@ -1,0 +1,42 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <AssemblyVersion>11.3.2.0</AssemblyVersion>
+    <FileVersion>11.3.2.0</FileVersion>
+    <Authors>Egolds</Authors>
+    <Description>Smooth animation support for vertical scrolling in the ScrollViewer in your Avalonia apps.</Description>
+    <Copyright>Copyright © Egolds 2025</Copyright>
+    <PackageProjectUrl>https://github.com/Egolds/Xaml.Behaviors.Interactions.Animated</PackageProjectUrl>
+    <PackageTags>Avalonia;Behavior;Behaviors;C#;Animation;Transition;ScrollViewer;Scrolling;Interaction;Interactivity;Interactions;Xaml</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Version>11.3.2</Version>
+    <PackageId>Egolds.Xaml.Behaviors.Interactions.Animated</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <IsAotCompatible>True</IsAotCompatible>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <IsAotCompatible>True</IsAotCompatible>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.2" />
+    <PackageReference Include="Xaml.Behaviors.Interactivity" Version="11.3.2" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+  </ItemGroup>
+</Project>
