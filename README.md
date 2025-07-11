@@ -6,13 +6,6 @@
 
 ![Demo Animation](docs/preview.gif)
 
-## Dependencies
-
-This library depends on the `Avalonia.Xaml.Interactivity` package. Make sure you have it installed in your project:
-
-- **NuGet Package**: [Avalonia.Xaml.Interactivity v11.2.0](https://www.nuget.org/packages/Avalonia.Xaml.Interactivity/11.2.0?_src=template)
-- **GitHub Repository**: [AvaloniaUI/Avalonia.Xaml.Behaviors](https://github.com/wieslawsoltes/Avalonia.Xaml.Behaviors)
-
 ## Installation
 
 You can install `Xaml.Behaviors.Interactions.Animated` via NuGet:
@@ -48,6 +41,28 @@ The animation effect is very easy to apply. Simply add `<ia:VerticalScrollViewer
   <!-- Content for scrolling -->
 </ScrollViewer>
 ```
+
+### Step 3: Configure Properties (Optional)
+
+The behavior provides several properties that you can configure to customize the scrolling experience:
+
+#### ScrollStepSize Property
+
+The `ScrollStepSize` property controls the amount of pixels to scroll when using the mouse wheel. By default, it's set to 100 pixels.
+
+```xml
+<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
+  <Interaction.Behaviors>
+    <ia:VerticalScrollViewerAnimatedBehavior ScrollStepSize="50"/>
+  </Interaction.Behaviors>
+
+  <!-- Content for scrolling -->
+</ScrollViewer>
+```
+
+- **Default value**: 100 pixels
+- **Usage**: Controls the scroll step size when using mouse wheel
+- **Effect**: Smaller values create more precise scrolling, larger values create faster scrolling
 
 ### License
 
