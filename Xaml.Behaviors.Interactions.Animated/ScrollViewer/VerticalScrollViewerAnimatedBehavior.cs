@@ -309,6 +309,9 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
     private void AnimateScroll(double delta)
     {
         var currentTime = DateTime.Now;
+        var maxOffset = AssociatedObject!.Extent.Height - AssociatedObject!.Bounds.Height;
+        if (maxOffset < 0)
+            maxOffset = 0;
 
         if (_isAnimating)
         {
@@ -325,22 +328,17 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
 
             // Update _targetOffset with new delta
             _targetOffset += delta;
-            _targetOffset = Math.Clamp(_targetOffset, 0, AssociatedObject!.Extent.Height - AssociatedObject!.Bounds.Height);
+            _targetOffset = Math.Clamp(_targetOffset, 0, maxOffset);
 
             _animationStartTime = currentTime;
         }
         else
         {
-            double height = AssociatedObject!.Extent.Height - AssociatedObject!.Bounds.Height;
-
-            if (height < 0)
-                return;
-            
             _isAnimating = true;
             _startOffset = AssociatedObject!.Offset.Y;
             _targetOffset = _startOffset + delta;
 
-            _targetOffset = Math.Clamp(_targetOffset, 0, height);
+            _targetOffset = Math.Clamp(_targetOffset, 0, maxOffset);
 
             _animationStartTime = currentTime;
             _ = Animate();
