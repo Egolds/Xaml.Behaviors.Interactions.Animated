@@ -8,8 +8,8 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <AssemblyVersion>11.3.2.0</AssemblyVersion>
-    <FileVersion>11.3.2.0</FileVersion>
+    <AssemblyVersion>11.3.3.0</AssemblyVersion>
+    <FileVersion>11.3.3.0</FileVersion>
     <Authors>Egolds</Authors>
     <Description>Smooth animation support for vertical scrolling in the ScrollViewer in your Avalonia apps.</Description>
     <Copyright>Copyright © Egolds 2025</Copyright>
@@ -17,7 +17,7 @@
     <PackageTags>Avalonia;Behavior;Behaviors;C#;Animation;Transition;ScrollViewer;Scrolling;Interaction;Interactivity;Interactions;Xaml;XamlBehaviors</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <Version>11.3.2</Version>
+    <Version>11.3.3</Version>
     <PackageId>Egolds.Xaml.Behaviors.Interactions.Animated</PackageId>
     <PackageReadmeFile>NUGET.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/Egolds/Xaml.Behaviors.Interactions.Animated</RepositoryUrl>
