@@ -331,11 +331,16 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
         }
         else
         {
+            double height = AssociatedObject!.Extent.Height - AssociatedObject!.Bounds.Height;
+
+            if (height < 0)
+                return;
+            
             _isAnimating = true;
             _startOffset = AssociatedObject!.Offset.Y;
             _targetOffset = _startOffset + delta;
 
-            _targetOffset = Math.Clamp(_targetOffset, 0, AssociatedObject!.Extent.Height - AssociatedObject!.Bounds.Height);
+            _targetOffset = Math.Clamp(_targetOffset, 0, height);
 
             _animationStartTime = currentTime;
             _ = Animate();
