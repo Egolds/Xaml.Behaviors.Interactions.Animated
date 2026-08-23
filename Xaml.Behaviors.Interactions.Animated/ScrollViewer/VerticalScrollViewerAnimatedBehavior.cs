@@ -107,6 +107,14 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
         if (scp == null)
             return;
 
+        // A horizontal gesture is left to whoever scrolls this content horizontally, but only when
+        // there is somewhere to move: otherwise Shift+wheel would simply stop scrolling the list.
+        if ((e.Delta.X != 0 || e.KeyModifiers.HasFlag(KeyModifiers.Shift)) &&
+            scp.Extent.Width - scp.Viewport.Width > NestedScrollChaining.Tolerance)
+        {
+            return;
+        }
+
         if (!NestedScrollChaining.TryWalkToOwnPresenter(e.Source, scp, e, out var stoppedAt))
             return; // a nested scroll viewer scrolls itself on this event
 
