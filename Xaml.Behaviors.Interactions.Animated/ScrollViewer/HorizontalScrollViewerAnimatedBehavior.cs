@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
@@ -12,16 +12,17 @@ using Xaml.Behaviors.Interactions.Animated.Internal;
 namespace Xaml.Behaviors.Interactions.Animated;
 
 /// <summary>
-/// Animates vertical wheel scrolling of the associated <see cref="ScrollViewer"/>.
+/// Animates horizontal wheel scrolling of the associated <see cref="ScrollViewer"/>: horizontal wheel
+/// or trackpad gestures and Shift+wheel. A plain wheel is left untouched, so an outer vertical list
+/// keeps scrolling while the pointer is over this one.
 /// </summary>
-public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<ScrollViewer>
+public class HorizontalScrollViewerAnimatedBehavior : StyledElementBehavior<ScrollViewer>
 {
-
     /// <summary>
     /// ScrollStepSize DirectProperty definition
     /// </summary>
-    public static readonly DirectProperty<VerticalScrollViewerAnimatedBehavior, double> ScrollStepSizeProperty =
-        AvaloniaProperty.RegisterDirect<VerticalScrollViewerAnimatedBehavior, double>(nameof(ScrollStepSize),
+    public static readonly DirectProperty<HorizontalScrollViewerAnimatedBehavior, double> ScrollStepSizeProperty =
+        AvaloniaProperty.RegisterDirect<HorizontalScrollViewerAnimatedBehavior, double>(nameof(ScrollStepSize),
             o => o.ScrollStepSize,
             (o, v) => o.ScrollStepSize = v);
 
@@ -44,7 +45,7 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
         /// <summary>Scroll by <see cref="ScrollStepSize"/>.</summary>
         Line,
 
-        /// <summary>Scroll by the viewport height.</summary>
+        /// <summary>Scroll by the viewport width.</summary>
         Page
     }
 
@@ -52,7 +53,7 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
     /// ScrollChangeSize StyledProperty definition
     /// </summary>
     public static readonly StyledProperty<ChangeSize> ScrollChangeSizeProperty =
-        AvaloniaProperty.Register<VerticalScrollViewerAnimatedBehavior, ChangeSize>(nameof(ScrollChangeSize));
+        AvaloniaProperty.Register<HorizontalScrollViewerAnimatedBehavior, ChangeSize>(nameof(ScrollChangeSize));
 
     /// <summary>
     /// Whether a wheel notch scrolls by a step or by a whole viewport.
@@ -63,7 +64,7 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
         set => SetValue(ScrollChangeSizeProperty, value);
     }
 
-    private readonly AnimatedOffsetScroller _scroller = new(Orientation.Vertical);
+    private readonly AnimatedOffsetScroller _scroller = new(Orientation.Horizontal);
 
     private ScrollContentPresenter? scp;
 
@@ -72,7 +73,6 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
     {
         base.OnAttached();
         AssociatedObject!.AddHandler(InputElement.PointerWheelChangedEvent, OnPointerWheelChanged, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-        AssociatedObject!.SetValue(ScrollChangeSizeProperty, ChangeSize.Line);
 
         AssociatedObject.Loaded += AssociatedObject_Loaded;
     }
@@ -89,60 +89,52 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
     {
         if (AssociatedObject == null) return;
 
-        scp = AssociatedObject?.Presenter as ScrollContentPresenter;
+        scp = AssociatedObject.Presenter as ScrollContentPresenter;
 
-        AssociatedObject!.Loaded -= AssociatedObject_Loaded;
+        AssociatedObject.Loaded -= AssociatedObject_Loaded;
     }
 
     private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
         if (!IsEnabled)
-        {
-            e.Handled = !scp?.IsScrollChainingEnabled ?? false;
             return;
-        }
 
         scp ??= AssociatedObject?.Presenter as ScrollContentPresenter;
 
         if (scp == null)
             return;
 
-        if (!NestedScrollChaining.TryWalkToOwnPresenter(e.Source, scp, e, out var stoppedAt))
+        // Only gestures addressed to the horizontal axis; a plain wheel belongs to vertical scrolling.
+        var delta = e.Delta.X != 0
+            ? e.Delta.X
+            : e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? e.Delta.Y : 0;
+
+        if (delta == 0)
+            return;
+
+        if (!NestedScrollChaining.TryWalkToOwnPresenter(e.Source, scp, e, out var stoppedAt) || stoppedAt != scp)
             return; // a nested scroll viewer scrolls itself on this event
 
-        if (stoppedAt != scp)
-        {
-            e.Handled = !(stoppedAt as ScrollContentPresenter)?.IsScrollChainingEnabled ?? false;
-            return;
-        }
-
-        var delta = e.Delta.Y;
-        if (delta == 0)
-        {
-            // Purely horizontal gesture: nothing to animate vertically. Handled is still set the
-            // same way the full path below would set it, so disabled chaining keeps trapping the event.
-            e.Handled = !scp.IsScrollChainingEnabled;
-            return;
-        }
-
-        var y = scp.Offset.Y;
+        var maxOffset = scp.Extent.Width - scp.Viewport.Width;
+        if (maxOffset <= 0)
+            return; // nothing to scroll here, let the event reach an outer list
 
         var scrollable = scp.Child as ILogicalScrollable;
         var isLogical = scrollable?.IsLogicalScrollEnabled == true;
-        if (scp.Extent.Height > scp.Viewport.Height)
-        {
-            double height = isLogical ? scrollable!.ScrollSize.Height : ScrollStepSize;
-            y -= delta * height;
-            y = Math.Clamp(y, 0, scp.Extent.Height - scp.Viewport.Height);
-        }
+        double width = isLogical ? scrollable!.ScrollSize.Width : ScrollStepSize;
 
-        var newOffset = ScrollSnapping.SnapOffset(scp, new Vector(scp.Offset.X, y), delta, true, Orientation.Vertical);
+        var x = Math.Clamp(scp.Offset.X - delta * width, 0, maxOffset);
+
+        var newOffset = ScrollSnapping.SnapOffset(scp, new Vector(x, scp.Offset.Y), delta, true, Orientation.Horizontal);
+        if (newOffset == scp.Offset)
+            return; // already at the edge, let the event chain to an outer list
+
         var step = ScrollChangeSize == ChangeSize.Line
-            ? Math.Abs(newOffset.Y - scp.Offset.Y)
-            : AssociatedObject!.Bounds.Height;
+            ? Math.Abs(newOffset.X - scp.Offset.X)
+            : AssociatedObject!.Bounds.Width;
 
         _scroller.Scroll(AssociatedObject!, delta > 0 ? -step : step);
 
-        e.Handled = !scp.IsScrollChainingEnabled || newOffset != scp.Offset;
+        e.Handled = true;
     }
 }
