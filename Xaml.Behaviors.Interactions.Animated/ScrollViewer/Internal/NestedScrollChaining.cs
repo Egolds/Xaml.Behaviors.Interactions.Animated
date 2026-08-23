@@ -50,6 +50,25 @@ internal static class NestedScrollChaining
     }
 
     /// <summary>
+    /// Whether any scroll viewer above <paramref name="from"/> can scroll along <paramref name="orientation"/>.
+    /// Edges are ignored on purpose: an outer list stays the owner of the event even when it is
+    /// already scrolled to its end.
+    /// </summary>
+    public static bool HasScrollableAncestor(Visual from, Orientation orientation)
+    {
+        foreach (var ancestor in from.GetVisualAncestors())
+        {
+            if (ancestor is ScrollContentPresenter presenter &&
+                presenter.Extent.Get(orientation) - presenter.Viewport.Get(orientation) > Tolerance)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Whether a nested scroll viewer consumes this wheel event itself. It does not when the gesture
     /// asks for an axis it cannot scroll at all, or when it is already at the edge in that direction —
     /// in both cases the event has to reach the outer list, otherwise that list would fall back to the

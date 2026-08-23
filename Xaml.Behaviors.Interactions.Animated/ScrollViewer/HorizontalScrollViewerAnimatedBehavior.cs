@@ -104,10 +104,11 @@ public class HorizontalScrollViewerAnimatedBehavior : StyledElementBehavior<Scro
         if (scp == null)
             return;
 
-        // Only gestures addressed to the horizontal axis; a plain wheel belongs to vertical scrolling.
+        // Gestures addressed to the horizontal axis, plus a plain wheel when there is nothing
+        // vertical around to claim it.
         var delta = e.Delta.X != 0
             ? e.Delta.X
-            : e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? e.Delta.Y : 0;
+            : e.KeyModifiers.HasFlag(KeyModifiers.Shift) || CanTakeOverPlainWheel() ? e.Delta.Y : 0;
 
         if (delta == 0)
             return;
@@ -137,4 +138,13 @@ public class HorizontalScrollViewerAnimatedBehavior : StyledElementBehavior<Scro
 
         e.Handled = true;
     }
+
+    /// <summary>
+    /// A plain wheel is scrolled horizontally only when no one else would use it vertically: neither
+    /// this list nor any list above it. That keeps a standalone carousel usable with a regular wheel
+    /// without stealing the wheel from a scrollable page around it.
+    /// </summary>
+    private bool CanTakeOverPlainWheel()
+        => scp!.Extent.Height - scp.Viewport.Height <= NestedScrollChaining.Tolerance &&
+           !NestedScrollChaining.HasScrollableAncestor(AssociatedObject!, Orientation.Vertical);
 }
