@@ -21,7 +21,7 @@ Or, if you prefer, download the `.dll` file directly from the [Releases section 
 | Behavior | Reacts to |
 | --- | --- |
 | `VerticalScrollViewerAnimatedBehavior` | Mouse wheel |
-| `HorizontalScrollViewerAnimatedBehavior` | `Shift` + mouse wheel, horizontal wheel and trackpad gestures |
+| `HorizontalScrollViewerAnimatedBehavior` | Horizontal wheel and trackpad gestures, `Shift` + mouse wheel, and a plain mouse wheel when nothing around scrolls vertically |
 
 Both behaviors can be attached to the same `ScrollViewer` when its content scrolls in both directions.
 
@@ -61,7 +61,7 @@ For a horizontally scrolling list, such as a carousel, use `HorizontalScrollView
 </ScrollViewer>
 ```
 
-A plain mouse wheel is intentionally left untouched by the horizontal behavior. When such a list is placed inside a vertically scrolling page, the wheel keeps scrolling the page while the pointer is over the list, and the list itself is scrolled with `Shift` + wheel or a trackpad gesture.
+A plain mouse wheel is picked up automatically, but only when there is nothing vertical around to claim it: neither the list itself nor any list above it scrolls vertically. So a standalone carousel is scrolled with a regular wheel, just like in a browser, while the very same carousel placed inside a scrollable page leaves the wheel to that page and is scrolled with `Shift` + wheel or a trackpad gesture. Unlike a browser, the page keeps the wheel even when it is already scrolled to its end, so a carousel under the pointer never starts moving unexpectedly.
 
 ### Step 3: Configure Properties (Optional)
 
