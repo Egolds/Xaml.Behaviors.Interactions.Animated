@@ -23,7 +23,7 @@ Or, if you prefer, download the `.dll` file directly from the [Releases section 
 | `VerticalScrollViewerAnimatedBehavior` | Mouse wheel |
 | `HorizontalScrollViewerAnimatedBehavior` | Horizontal wheel and trackpad gestures, `Shift` + mouse wheel, and a plain mouse wheel when nothing around scrolls vertically |
 
-Both behaviors can be attached to the same `ScrollViewer` when its content scrolls in both directions.
+Both behaviors can be attached to the same `ScrollViewer` when its content scrolls in both directions: a plain wheel scrolls it vertically, `Shift` + wheel and trackpad gestures scroll it horizontally. The order they are declared in does not matter, as each behavior reacts to its own set of gestures.
 
 ## Usage
 
