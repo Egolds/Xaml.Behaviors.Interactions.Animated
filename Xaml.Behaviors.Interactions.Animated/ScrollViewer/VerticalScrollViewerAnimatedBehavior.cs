@@ -54,6 +54,8 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
 
     private const double AnimationDuration = 170; // animation duration in milliseconds
 
+    private const double ScrollTolerance = 0.5; // offsets are fractional, so edges are compared loosely
+
     private bool _isAnimating;
     private double _targetOffset;
     private double _startOffset;
@@ -232,24 +234,20 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
         var src = e.Source;
         while (src != null && src != scp)
         {
-            if (src is ScrollContentPresenter scp2)
+            if (src is ScrollContentPresenter nested)
             {
-                if (scp2 == scp)
-                    break;
+                if (CanNestedPresenterHandle(nested, e))
+                    return; // the nested scroll viewer scrolls itself
 
-                if (e.Delta.Y > 0 && scp2.Offset.Y == 0 ||
-                    e.Delta.Y < 0 && scp2.Offset.Y == scp2!.Extent.Height - scp2!.Viewport.Height) // scroll up or down & it's max
-                {
-                    src = scp2.GetVisualParent(); // take next parent
-                }
-                else
-                {
-                    return;
-                }
+                src = nested.GetVisualParent(); // take next parent
             }
             else if (src is Visual visual)
             {
                 src = visual.GetVisualParent();
+            }
+            else
+            {
+                break; // not a visual: there is nothing left to walk up to
             }
         }
 
@@ -261,6 +259,14 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
         }
 
         var delta = e.Delta;
+        if (delta.Y == 0)
+        {
+            // Purely horizontal gesture: nothing to animate vertically. Handled is still set the
+            // same way the full path below would set it, so disabled chaining keeps trapping the event.
+            e.Handled = !scp.IsScrollChainingEnabled;
+            return;
+        }
+
         var x = scp!.Offset.X;
         var y = scp!.Offset.Y;
         var maxOffsetY = scp!.Extent.Height - scp!.Viewport.Height;
@@ -304,6 +310,27 @@ public class VerticalScrollViewerAnimatedBehavior : StyledElementBehavior<Scroll
 
         bool offsetChanged = newOffset != scp.Offset;
         e.Handled = !scp.IsScrollChainingEnabled || offsetChanged;
+    }
+
+    /// <summary>
+    /// Decides whether a nested scroll viewer between the event source and the associated one
+    /// consumes this wheel event itself. When it does not — for example a horizontal-only list,
+    /// or a list already scrolled to the edge — the event has to travel further up the chain,
+    /// otherwise the outer list would fall back to the built-in non-animated scrolling.
+    /// </summary>
+    private static bool CanNestedPresenterHandle(ScrollContentPresenter presenter, PointerWheelEventArgs e)
+    {
+        // Shift+wheel and horizontal gestures are addressed to horizontal scrolling.
+        if (e.Delta.X != 0 || e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+            return presenter.Extent.Width - presenter.Viewport.Width > ScrollTolerance;
+
+        var maxOffsetY = presenter.Extent.Height - presenter.Viewport.Height;
+        if (maxOffsetY <= ScrollTolerance)
+            return false; // cannot scroll vertically at all
+
+        return e.Delta.Y > 0
+            ? presenter.Offset.Y > ScrollTolerance
+            : presenter.Offset.Y < maxOffsetY - ScrollTolerance;
     }
 
     private void AnimateScroll(double delta)
